@@ -146,7 +146,7 @@ class AcuFile:
         n_blocks = self._n_blocks(blocksize, noverlap=noverlap)
         time_array, _, _ = self._time_array(binsize, bin_overlap=bin_overlap)
         for i, block in tqdm(enumerate(sf.blocks(self.file_path, blocksize=blocksize, start=self._start_frame,
-                                                 overlap=bin_overlap, always_2d=True, fill_value=0.0)),
+                                                 overlap=noverlap, always_2d=True, fill_value=0.0)),
                              total=n_blocks, leave=False, position=0):
             # Select the desired channel
             block = block[:, self.channel]
@@ -558,6 +558,21 @@ class AcuFile:
         """
         rms_ds = self._apply(method_name='rms', binsize=binsize, bin_overlap=bin_overlap, db=db)
         return rms_ds
+    
+    def kurtosis(self, binsize=None, bin_overlap=0):
+        """
+        Calculation of kurtosis value of the signal for each bin
+        Returns Dataframe with 'datetime' as index and 'kurtosis' value as a column
+
+        Parameters
+        ----------
+        binsize : float, in sec
+            Time window considered. If set to None, only one value is returned
+        bin_overlap : float [0 to 1]
+            Percentage to overlap the bin windows
+        """
+        kurtosis_ds = self._apply(method_name='kurtosis', binsize=binsize, bin_overlap=bin_overlap)
+        return kurtosis_ds   
 
     def aci(self, binsize=None, bin_overlap=0, nfft=1024, fft_overlap=0.5):
         """

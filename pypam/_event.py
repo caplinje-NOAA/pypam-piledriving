@@ -40,51 +40,63 @@ class Event(Signal):
         self.end += end
         self.signal = self.signal[start:end]
 
-    def analyze(self):
+    def analyze(self, impulsive=False, energy_window=0.9):
         """
         Perform all necessary calculations for a single event
 
-        Returns
+        Returns dictionary of metrics with keys
         -------
-        rms, sel, peak
+        rms, sel, peak, kurtosis, pulsewidth
         """
-        rms = self.rms()
-        sel = self.sel()
-        peak = self.peak()
-        return rms, sel, peak
+        
+        if impulsive:
 
-    def sel(self, high_noise=False):
-        """
-        Compute the SEL by finding the peak of the event and then finding the first argument where the signal drops
-        10 or 5 db below the peak (set high_noise to True if 5 db is desired)
-
-        Parameters
-        ----------
-        high_noise: bool
-            Set to True if the environment is noisy (SEL will be considered until when the signal drops 5 db below
-            the peak)
-        """
-        # Choose the difference in db
-        diff_db = 10
-        if high_noise:
-            diff_db = 5
-        # Find the peak
-        if len(self.signal) == 0:
-            raise UserWarning('This event is empty!')
-        cut_start = np.argmax(self.signal)
-        peak = self.signal[cut_start]
-
-        # Compute the cut level
-        cut_level = peak / (10 ** (diff_db / 10))
-        cut_end = np.argwhere(self._total_signal[cut_start+self.start::] < cut_level)
-        if len(cut_end) == 0:
-            cut_end = self.end
+            windowStr = str(int(energy_window*100))
+            rms = self.rms(energy_window=.9)
+            sel = self.sel(energy_window=.9)
+            tau = self.pulse_width(energy_window)
         else:
-            cut_end = cut_end[0][0] + self.start + cut_start
-        # Reasign signal to the new part and compute SEL
-        self.signal = self._total_signal[cut_start+self.start:cut_end]
-        sel = super(Event, self).sel()
+            rms = self.rms()
+            sel = self.sel()
+            
+        peak = self.peak()
+        kurtosis = self.kurtosis()
+        
+        out = {'peak':peak,f'rms{windowStr}':rms,f'sel{windowStr}':sel,'tau':tau,'kurtosis':kurtosis}
+        return out
 
-        # Go back to the previous signal
-        self.signal = self._total_signal[self.start:self.end]
-        return sel
+    # def sel(self, high_noise=False):
+    #     """
+    #     Compute the SEL by finding the peak of the event and then finding the first argument where the signal drops
+    #     10 or 5 db below the peak (set high_noise to True if 5 db is desired)
+
+    #     Parameters
+    #     ----------
+    #     high_noise: bool
+    #         Set to True if the environment is noisy (SEL will be considered until when the signal drops 5 db below
+    #         the peak)
+    #     """
+    #     # Choose the difference in db
+    #     diff_db = 10
+    #     if high_noise:
+    #         diff_db = 5
+    #     # Find the peak
+    #     if len(self.signal) == 0:
+    #         raise UserWarning('This event is empty!')
+    #     cut_start = np.argmax(self.signal)
+    #     peak = self.signal[cut_start]
+
+    #     # Compute the cut level
+    #     cut_level = peak / (10 ** (diff_db / 10))
+    #     cut_end = np.argwhere(self._total_signal[cut_start+self.start::] < cut_level)
+    #     if len(cut_end) == 0:
+    #         cut_end = self.end
+    #     else:
+    #         cut_end = cut_end[0][0] + self.start + cut_start
+    #     # Reasign signal to the new part and compute SEL
+    #     self.signal = self._total_signal[cut_start+self.start:cut_end]
+    #     sel = super(Event, self).sel()
+
+    #     # Go back to the previous signal
+    #     self.signal = self._total_signal[self.start:self.end]
+    #     return sel
