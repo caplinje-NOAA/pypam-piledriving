@@ -46,7 +46,7 @@ class Event(Signal):
 
         Returns dictionary of metrics with keys
         -------
-        rms, sel, peak, kurtosis, pulsewidth
+        rms, sel, peak, kurtosis, pulse width
         """
         
         if impulsive:
