@@ -138,6 +138,8 @@ class AcuFile:
         Where i is the index, time_bin is the datetime of the beginning of the block and signal is the signal object
         of the bin
         """
+        if bin_overlap>1:
+            raise ValueError(f'Unable to process bins for bin_overlap={bin_overlap:.2f}. Bin overlap must be fractional.')
         if binsize is None:
             blocksize = self.file.frames - self._start_frame
         else:
@@ -156,8 +158,9 @@ class AcuFile:
             signal = sig.Signal(signal=signal_upa, fs=self.fs, channel=self.channel)
             if self.dc_subtract:
                 signal.remove_dc()
-            start_sample = i * blocksize + self._start_frame
-            end_sample = start_sample + len(signal_upa)
+            step = blocksize-noverlap
+            start_sample = i * step + self._start_frame
+            end_sample = start_sample + blocksize
             yield i, time_bin, signal, start_sample, end_sample
         self.file.seek(0)
 
@@ -316,6 +319,7 @@ class AcuFile:
             total_block = self.file.frames - self._start_frame
         else:
             total_block = self.samples(binsize)
+        # define step as total block size - number of overlap    
         blocksize = total_block - int(total_block) * bin_overlap
         blocks_samples = np.arange(start=self._start_frame, stop=self.file.frames - 1, step=blocksize)
         end_samples = blocks_samples + blocksize
@@ -463,7 +467,7 @@ class AcuFile:
         DataFrame with time as index and a multiindex column with band, method as levels.
         """
         # TODO decide if it is downsampled or not
-        downsample = False
+        downsample = True
 
         # Bands selected to study
         if band_list is None:
@@ -559,7 +563,7 @@ class AcuFile:
         rms_ds = self._apply(method_name='rms', binsize=binsize, bin_overlap=bin_overlap, db=db)
         return rms_ds
     
-    def kurtosis(self, binsize=None, bin_overlap=0):
+    def kurtosis(self, binsize=None, bin_overlap=0, band_list=None):
         """
         Calculation of kurtosis value of the signal for each bin
         Returns Dataframe with 'datetime' as index and 'kurtosis' value as a column
@@ -571,7 +575,7 @@ class AcuFile:
         bin_overlap : float [0 to 1]
             Percentage to overlap the bin windows
         """
-        kurtosis_ds = self._apply(method_name='kurtosis', binsize=binsize, bin_overlap=bin_overlap)
+        kurtosis_ds = self._apply(method_name='kurtosis', binsize=binsize, bin_overlap=bin_overlap, band_list=band_list)
         return kurtosis_ds   
 
     def aci(self, binsize=None, bin_overlap=0, nfft=1024, fft_overlap=0.5):
