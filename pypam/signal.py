@@ -471,9 +471,10 @@ class Signal:
             y = sig.sosfilt(filterbank[i], newx[d[i]])  # Check the filter!
             # Calculate level time series
             if db:
-                spg[i] = 10 * np.log10(np.sum(y**2) / len(y))
-            elif SEL:
-                spg[i] = 10 * np.log10(np.sum(y**2) / self.fs)
+                if not SEL:
+                    spg[i] = 10 * np.log10(np.sum(y**2) / len(y))
+                else:
+                    spg[i] = 10 * np.log10(np.sum(y**2) / self.fs)
             else:
                 spg[i] = y
 

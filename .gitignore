@@ -65,3 +65,14 @@ docs/source/generated/
 
 tests/test_data/data_exploration
 pypam.egg-info/
+
+# caplineje dev - ignore everything but core package
+tests/
+pyproject.toml
+README.md
+poetry.lock
+Makefile
+LICENSE
+CITATION.cff
+examples/
+docs/

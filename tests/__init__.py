@@ -1,9 +1,10 @@
 # Basic support for unit tests.
 
 from os import getenv
+import os
 import pytest
 
-
+os.environ["PYPAM_TEST_NO_PLOTS"]='True'
 def with_plots() -> bool:
     """
     Return True if the env var PYPAM_TEST_NO_PLOTS is not set.
