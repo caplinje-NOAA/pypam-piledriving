@@ -402,6 +402,28 @@ class Signal:
         """
         return self.octave_levels(db, 3)
 
+    def decidecade_sel(self):
+        """
+        Calculation of calibrated decidecade band sel spectra
+
+        Returns
+        -------
+        f : numpy array
+            Array with the center frequencies of the bands
+        sel : numpy array
+            Sound Exposure Level of each band
+        """
+        f_psd,psd = sig.periodogram(self.signal,fs=self.fs)
+        Ef = psd*len(self.signal)/self.fs
+        centers, highs, lows = utils.decidecade_bands(f_psd[1], max(f_psd),bounded=True)
+        sel = np.zeros((len(centers),))
+        for i,(center,high,low) in enumerate(zip(centers,highs,lows)):
+            indices = np.where((f_psd > low) & (f_psd < high))
+            Ef_band = np.trapz(Ef[indices],x=f_psd[indices])
+            sel[i] = 10 * np.log10( Ef_band )
+        f = centers
+        return f,sel
+
     def octave_levels(self, db=True, fraction=1, **kwargs):
         """
         Calculation of calibrated octave band levels
