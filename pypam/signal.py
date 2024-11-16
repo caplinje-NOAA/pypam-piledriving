@@ -9,7 +9,6 @@ import operator
 import matplotlib.pyplot as plt
 import noisereduce as nr
 import numpy as np
-import scipy.signal
 import scipy.signal as sig
 import seaborn as sns
 import sklearn.linear_model as linear_model
@@ -404,15 +403,26 @@ class Signal:
         return self.octave_levels(db, 3)
 
     def decidecade_sel(self):
-        f,psd = scipy.signal.periodogram(self.signal,fs=self.fs)
+        """
+        Calculation of calibrated decidecade band sel spectra
+
+        Returns
+        -------
+        f : numpy array
+            Array with the center frequencies of the bands
+        sel : numpy array
+            Sound Exposure Level of each band
+        """
+        f_psd,psd = sig.periodogram(self.signal,fs=self.fs)
         Ef = psd*len(self.signal)/self.fs
-        centers, highs, lows = utils.decidecade_bands(f[1], max(f),bounded=True)
+        centers, highs, lows = utils.decidecade_bands(f_psd[1], max(f_psd),bounded=True)
         sel = np.zeros((len(centers),))
         for i,(center,high,low) in enumerate(zip(centers,highs,lows)):
-            indices = np.where((f > low) & (f < high))
-            Ef_band = np.trapz(Ef[indices],x=f[indices])
+            indices = np.where((f_psd > low) & (f_psd < high))
+            Ef_band = np.trapz(Ef[indices],x=f_psd[indices])
             sel[i] = 10 * np.log10( Ef_band )
-        return centers,sel
+        f = centers
+        return f,sel
 
     def octave_levels(self, db=True, fraction=1, **kwargs):
         """
