@@ -52,7 +52,7 @@ class TestAcuFile(unittest.TestCase):
         ax.plot(ds_rms_overlap.datetime[0:100], ds_rms_overlap.rms[0:100], label='.50 overlap')
         ax.plot(ds_rms.datetime[0:100], ds_rms.rms[0:100], label='no overlap')
         ax.legend()
-        fig.show()
+        plt.show()
         # compare output time step (dt) to expected time step
         step = np.mean(np.diff(ds_rms_overlap.start_sample))
         dt = step/self.acu_file.fs
