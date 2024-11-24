@@ -210,6 +210,7 @@ def test_plot_metrics():
 def sum_spec(L):
     """sum decidecade spectra to compute broadband level"""
     I = 0
+    L = L[np.isfinite(L)]
     for l in L:
         I = I + 10 ** (l / 10)
     return 10 * np.log10(I)
@@ -271,7 +272,7 @@ def test_decidecade_sel():
         label="directly computed",
     )
     ax_bb.plot(
-        sel_bb, marker="d", linestyle="none", label="decidecade broadband"
+        sel_bb, marker="o", linestyle="none", label="decidecade broadband"
     )
     ax_bb.set_ylabel("SEL (dB)")
     ax_bb.set_xlabel("event")
