@@ -420,7 +420,9 @@ class Signal:
         for i,(center,high,low) in enumerate(zip(centers,highs,lows)):
             indices = np.where((f_psd > low) & (f_psd < high))
             Ef_band = np.trapz(Ef[indices],x=f_psd[indices])
-            Ef_band[Ef_band==-np.inf]=np.nan # replace -infs with nans for log10
+            # replace -infs with nans for log10
+            if Ef_band<0:
+                Ef_band = np.nan
             sel[i] = 10 * np.log10( Ef_band )
         f = centers
         return f,sel
